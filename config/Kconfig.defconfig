@@ -13,6 +13,200 @@ endif # SHIELD_SPLITKB_AURORA_LILY58_LEFT
 
 if SHIELD_SPLITKB_AURORA_LILY58_LEFT || SHIELD_SPLITKB_AURORA_LILY58_RIGHT
 
+menuconfig ZMK_BLE
+    bool "BLE (HID over GATT)"
+    select BT
+    select BT_SMP
+    select BT_SMP_SC_PAIR_ONLY
+    select BT_SMP_APP_PAIRING_ACCEPT
+    select BT_PERIPHERAL
+    select BT_DIS
+    imply BT_DEVICE_NAME_DYNAMIC
+    imply BT_SETTINGS if !ARCH_POSIX
+    imply SETTINGS if !ARCH_POSIX
+    imply ZMK_BATTERY_REPORTING if !ARCH_POSIX
+
+if ZMK_BLE
+
+config ZMK_BLE_EXPERIMENTAL_CONN
+    bool "Experimental BLE connection changes"
+    help
+      Enables settings that are planned to be default in future versions of ZMK
+      to improve connection stability.
+
+config ZMK_BLE_EXPERIMENTAL_SEC
+    bool "Experimental BLE security changes"
+    imply BT_SMP_ALLOW_UNAUTH_OVERWRITE
+    help
+      Enables security settings that are planned to be officially supported in the future.
+
+config ZMK_BLE_EXPERIMENTAL_FEATURES
+    bool "Experimental BLE connection and security settings/features"
+    select ZMK_BLE_EXPERIMENTAL_CONN
+    select ZMK_BLE_EXPERIMENTAL_SEC
+    help
+      Enables experimental connection changes and security features.
+
+config ZMK_BLE_PASSKEY_ENTRY
+    bool "Require passkey entry on the keyboard to complete pairing"
+    select RING_BUFFER
+
+config BT_SMP_ALLOW_UNAUTH_OVERWRITE
+    imply ZMK_BLE_PASSKEY_ENTRY
+
+config BT_CTLR_PHY_2M
+    default n if ZMK_BLE_EXPERIMENTAL_CONN
+
+# BT_TINYCRYPT_ECC is required for BT_SMP_SC_PAIR_ONLY when using HCI
+config BT_TINYCRYPT_ECC
+    default y if BT_HCI && !BT_CTLR
+
+config ZMK_BLE_THREAD_STACK_SIZE
+    int "BLE notify thread stack size"
+    default 768
+
+config ZMK_BLE_THREAD_PRIORITY
+    int "BLE notify thread priority"
+    default 5
+
+config ZMK_BLE_KEYBOARD_REPORT_QUEUE_SIZE
+    int "Max number of keyboard HID reports to queue for sending over BLE"
+    default 20
+
+config ZMK_BLE_CONSUMER_REPORT_QUEUE_SIZE
+    int "Max number of consumer HID reports to queue for sending over BLE"
+    default 5
+
+config ZMK_BLE_MOUSE_REPORT_QUEUE_SIZE
+    int "Max number of mouse HID reports to queue for sending over BLE"
+    default 20
+
+config ZMK_BLE_CLEAR_BONDS_ON_START
+    bool "Configuration that clears all bond information from the keyboard on startup."
+# HID GATT notifications sent this way are *not* picked up by Linux, and possibly others.
+config BT_GATT_NOTIFY_MULTIPLE
+    default n
+
+config BT_GATT_AUTO_SEC_REQ
+    default (ZMK_SPLIT_BLE && !ZMK_SPLIT_ROLE_CENTRAL)
+
+config BT_DEVICE_APPEARANCE
+    default 961
+
+config BT_PERIPHERAL_PREF_MIN_INT
+    default 6
+
+config BT_PERIPHERAL_PREF_MAX_INT
+    default 12
+
+config BT_PERIPHERAL_PREF_LATENCY
+    default 30
+
+config BT_PERIPHERAL_PREF_TIMEOUT
+    default 400
+
+# The device name should be 16 characters or less so it fits within the
+# advertising data.
+config BT_DEVICE_NAME_MAX
+    default 16
+
+endif # ZMK_BLE
+
+rsource "src/studio/Kconfig"
+
+menu "Display/LED Options"
+
+rsource "src/display/Kconfig"
+
+menuconfig ZMK_RGB_UNDERGLOW
+    bool "RGB Addressable LED Underglow"
+    select LED_STRIP
+    select ZMK_LOW_PRIORITY_WORK_QUEUE
+
+if ZMK_RGB_UNDERGLOW
+
+config ZMK_RGB_UNDERGLOW_EXT_POWER
+    bool "RGB underglow toggling also controls external power"
+
+config ZMK_RGB_UNDERGLOW_BRT_MIN
+    int "RGB underglow minimum brightness in percent"
+    range 0 100
+
+config ZMK_RGB_UNDERGLOW_BRT_MAX
+    int "RGB underglow maximum brightness in percent"
+    range ZMK_RGB_UNDERGLOW_BRT_MIN 100
+
+config ZMK_RGB_UNDERGLOW_HUE_STEP
+    int "RGB underglow hue step in degrees"
+    range 0 359
+
+config ZMK_RGB_UNDERGLOW_SAT_STEP
+    int "RGB underglow saturation step in percent"
+    range 0 100
+
+config ZMK_RGB_UNDERGLOW_BRT_STEP
+    int "RGB underglow brightness step in percent"
+    range 0 100
+
+config ZMK_RGB_UNDERGLOW_HUE_START
+    int "RGB underglow start hue value in degrees"
+    range 0 359
+
+config ZMK_RGB_UNDERGLOW_SAT_START
+    int "RGB underglow start saturations value in percent"
+    range 0 100
+
+config ZMK_RGB_UNDERGLOW_BRT_START
+    int "RGB underglow start brightness value in percent"
+    range ZMK_RGB_UNDERGLOW_BRT_MIN ZMK_RGB_UNDERGLOW_BRT_MAX
+
+config ZMK_RGB_UNDERGLOW_SPD_START
+    int "RGB underglow start animation speed value"
+    range 1 5
+
+config ZMK_RGB_UNDERGLOW_EFF_START
+    int "RGB underglow start effect int value related to the effect enum list"
+    range 0 3
+
+config ZMK_RGB_UNDERGLOW_ON_START
+    bool "RGB underglow starts on by default"
+
+config ZMK_RGB_UNDERGLOW_AUTO_OFF_IDLE
+    bool "Turn off RGB underglow when keyboard goes into idle state"
+
+config ZMK_RGB_UNDERGLOW_AUTO_OFF_USB
+    bool "Turn off RGB underglow when USB is disconnected"
+    depends on USB_DEVICE_STACK
+
+endif # ZMK_RGB_UNDERGLOW
+
+menuconfig ZMK_BACKLIGHT
+    bool "LED backlight"
+    select LED
+
+if ZMK_BACKLIGHT
+
+config ZMK_BACKLIGHT_BRT_STEP
+    int "Brightness step in percent"
+    range 1 100
+
+config ZMK_BACKLIGHT_BRT_START
+    int "Default brightness in percent"
+    range 1 100
+
+config ZMK_BACKLIGHT_ON_START
+    bool "Default backlight state"
+
+config ZMK_BACKLIGHT_AUTO_OFF_IDLE
+    bool "Turn off backlight when keyboard goes into idle state"
+
+config ZMK_BACKLIGHT_AUTO_OFF_USB
+    bool "Turn off backlight when USB is disconnected"
+
+endif # ZMK_BACKLIGHT
+
+endmenu # Display/LED Options
+
 config ZMK_SPLIT
     default y
 
