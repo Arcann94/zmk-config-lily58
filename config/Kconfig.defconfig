@@ -13,6 +13,16 @@ endif # SHIELD_SPLITKB_AURORA_LILY58_LEFT
 
 if SHIELD_SPLITKB_AURORA_LILY58_LEFT || SHIELD_SPLITKB_AURORA_LILY58_RIGHT
 
+if ZMK_BACKLIGHT
+
+config PWM
+    default y
+
+config LED_PWM
+    default y
+
+endif # ZMK_BACKLIGHT
+
 menuconfig ZMK_BLE
     bool "BLE (HID over GATT)"
     select BT
