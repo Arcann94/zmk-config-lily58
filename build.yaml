@@ -24,4 +24,4 @@ include:
  
  - board: nice_nano_v2
    shield: splitkb_aurora_lily58_right nice_view_adapter nice_view
-   cmake-args: -DCONFIG_ZMK_STUDIO=y
+
