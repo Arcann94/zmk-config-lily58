@@ -13,7 +13,7 @@
     chosen {
         zephyr,display = &oled;
         zmk,physical-layout = &kata0510_lily58_layout;
-        zmk,backlight = &backlight;
+        
     };
 
     default_transform: keymap_transform_0 {
@@ -82,24 +82,6 @@ RC(3,0) RC(3,1) RC(3,2) RC(3,3) RC(3,4) RC(3,5) RC(4,1) RC(4,10) RC(3,6) RC(3,7)
         prechargep = <0x22>;
     };
 
-&pinctrl {
-    // Other pinctrl definitions for other hardware
-    pwm0_default: pwm0_default {
-        group1 {
-            psels = <NRF_PSEL(PWM_OUT0, 1, 13)>;
-        };
-    };
-    pwm0_sleep: pwm0_sleep {
-        group1 {
-            psels = <NRF_PSEL(PWM_OUT0, 1, 13)>;
-            low-power-enable;
-        };
-    };
-&pwm0 {
-    status = "okay";
-    pinctrl-0 = <&pwm0_default>;
-    pinctrl-1 = <&pwm0_sleep>;
-    pinctrl-names = "default", "sleep";
-    };
+
 };
 };
